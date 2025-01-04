@@ -17,11 +17,12 @@ char *read_input(void)
     return buffer;
 }
 
-char **tokenize(char *command)
+char **tokenize(char *command, int *token_count)
 {
     int position;
     char **tokens, *token;
     tokens = (char **)malloc(BUFFER_SIZE * sizeof(char *));
+    *token_count = 0;
 
     if (!tokens)
     {
@@ -36,15 +37,22 @@ char **tokenize(char *command)
         tokens[position] = token;
         position = position + 1;
         token = strtok(NULL, TOKEN_DELIMITER);
+        *token_count += 1;
     }
     tokens[position] = NULL;
     return tokens;
 }
 
-char **parse_input(char *command)
+char **parse_input(char *command, bool *is_background_process)
 {
+    int token_count;
     char **command_list;
-    command_list = tokenize(command);
+    *is_background_process = false;
+    command_list = tokenize(command, &token_count);
+    if (strcmp(command_list[token_count - 1], "&") == 0)
+    {
+        *is_background_process = true;
+    }
     return command_list;
 }
 

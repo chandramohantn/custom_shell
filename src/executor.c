@@ -2,8 +2,9 @@
 #include "../include/executor.h"
 #include "../include///io_redirection.h"
 #include "../include/builtin_commands.h"
+#include "../include/job_control.h"
 
-void execute_command(char **command_list)
+void execute_command(char **command_list, char *command, bool is_background_process)
 {
     if (check_command_in_builtin_list(command_list[0]))
     {
@@ -20,22 +21,64 @@ void execute_command(char **command_list)
         perror("Unable to fork\n");
         exit(EXIT_FAILURE);
     }
-    else if (pid == 0)
+
+    if (is_background_process)
     {
-        handle_io_redirection(command_list);
-        if (execvp(command_list[0], command_list) == -1)
+        if (pid == 0)
         {
-            perror("Unable to execute the command\n");
-            exit(EXIT_FAILURE);
+            setpgid(0, 0);
+            handle_io_redirection(command_list);
+            if (execvp(command_list[0], command_list) == -1)
+            {
+                perror("Unable to execute the command\n");
+                exit(EXIT_FAILURE);
+            }
+            exit(EXIT_SUCCESS);
         }
-        exit(EXIT_SUCCESS);
+        else
+        {
+            setpgid(pid, pid);
+            Job job;
+            job.pgid = pid;
+            job.status = RUNNING;
+            strncpy(job.command, command, BUFFER_SIZE);
+            add_job(job);
+            printf("Background job started: %d\n", pid);
+        }
     }
     else
     {
-        do
+        if (pid == 0)
         {
-            waitpid(pid, &status, WUNTRACED);
-        } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+            setpgid(0, 0);
+            tcsetpgrp(STDIN_FILENO, getpid());
+            handle_io_redirection(command_list);
+            if (execvp(command_list[0], command_list) == -1)
+            {
+                perror("Unable to execute the command\n");
+                exit(EXIT_FAILURE);
+            }
+            exit(EXIT_SUCCESS);
+        }
+        else
+        {
+            setpgid(pid, pid);
+            tcsetpgrp(STDIN_FILENO, pid);
+            do
+            {
+                waitpid(pid, &status, WUNTRACED);
+            } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+            tcsetpgrp(STDIN_FILENO, getpid());
+            if (WIFSTOPPED(status))
+            {
+                Job job;
+                job.pgid = pid;
+                job.status = RUNNING;
+                strncpy(job.command, command, BUFFER_SIZE);
+                add_job(job);
+                printf("Foreground job started: %d\n", pid);
+            }
+        }
     }
 }
 
@@ -69,7 +112,8 @@ void execute_pipe_command(char *input)
             close(fd[1]);
 
             char **command_list;
-            command_list = parse_input(command);
+            bool is_background_process;
+            command_list = parse_input(command, &is_background_process);
             handle_io_redirection(command_list);
             if (execvp(command_list[0], command_list) == -1)
             {
