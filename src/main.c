@@ -14,9 +14,16 @@ int main()
     while (1)
     {
         command = read_input();
-        char **command_list;
-        command_list = parse_input(command);
-        execute_command(command_list);
+        if (is_pipe_present(command))
+        {
+            execute_pipe_command(command);
+        }
+        else
+        {
+            char **command_list;
+            command_list = parse_input(command);
+            execute_command(command_list);
+        }
     }
 
     return 0;

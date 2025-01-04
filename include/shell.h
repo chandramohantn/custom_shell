@@ -12,6 +12,8 @@
 #include <signal.h>
 
 #define BUFFER_SIZE 1024
-#define TOKEN_DELIMITER "|"
+#define NUMBER_OF_JOBS 100
+#define TOKEN_DELIMITER " \t\n\r\a"
+#define PIPE_DELIMITER "|"
 
 #endif

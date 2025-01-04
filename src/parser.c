@@ -47,3 +47,12 @@ char **parse_input(char *command)
     command_list = tokenize(command);
     return command_list;
 }
+
+bool is_pipe_present(char *command)
+{
+    if (strstr(command, PIPE_DELIMITER) != NULL)
+    {
+        return true;
+    }
+    return false;
+}
