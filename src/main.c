@@ -1,11 +1,15 @@
 #include "../include/shell.h"
 #include "../include/parser.h"
 #include "../include/executor.h"
+#include "../include/signal_handler.h"
 
 int main()
 {
     char *command;
     bool is_background_process;
+
+    signal(SIGINT, handle_sigint);
+    signal(SIGTSTP, handle_sigtstp);
 
     while (1)
     {
