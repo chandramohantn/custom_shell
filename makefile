@@ -1,6 +1,6 @@
 cc = GCC
 CFLAGS = -Wall -Wextra -g
-SRC = src/main.c src/executor.c src/parser.c src/signal_handler.c src/io_redirection.c
+SRC = src/main.c src/executor.c src/parser.c src/signal_handler.c src/io_redirection.c src/builtin_commands.c
 OBJ = $(SRC:src/%.c=executables/%.o)
 OUT = executables/learner
 

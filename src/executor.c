@@ -1,9 +1,16 @@
 #include "../include/parser.h"
 #include "../include/executor.h"
 #include "../include///io_redirection.h"
+#include "../include/builtin_commands.h"
 
 void execute_command(char **command_list)
 {
+    if (check_command_in_builtin_list(command_list[0]))
+    {
+        execute_builtin_commands(command_list);
+        return;
+    }
+
     pid_t pid;
     pid = fork();
     int status;
