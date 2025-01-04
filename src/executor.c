@@ -1,5 +1,6 @@
 #include "../include/parser.h"
 #include "../include/executor.h"
+#include "../include///io_redirection.h"
 
 void execute_command(char **command_list)
 {
@@ -14,6 +15,7 @@ void execute_command(char **command_list)
     }
     else if (pid == 0)
     {
+        handle_io_redirection(command_list);
         if (execvp(command_list[0], command_list) == -1)
         {
             perror("Unable to execute the command\n");
@@ -61,6 +63,7 @@ void execute_pipe_command(char *input)
 
             char **command_list;
             command_list = parse_input(command);
+            handle_io_redirection(command_list);
             if (execvp(command_list[0], command_list) == -1)
             {
                 perror("Unable to execute the command\n");
